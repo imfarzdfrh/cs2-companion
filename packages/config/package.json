@@ -1,0 +1,6 @@
+{
+  "name": "@cs2/config",
+  "private": true,
+  "type": "module",
+  "exports": "./index.ts"
+}

@@ -1,0 +1,22 @@
+{
+  "name": "cs2-companion",
+  "private": true,
+  "packageManager": "pnpm@11.25.0",
+  "scripts": {
+    "dev:mobile": "pnpm --filter @cs2/mobile dev",
+    "dev:website": "pnpm --filter @cs2/website dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "node --test tests/*.test.ts",
+    "format": "prettier --write apps/*/app apps/*/*.ts packages tests"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "prettier": "3.5.3",
+    "@playwright/test": "1.58.2"
+  },
+  "type": "module"
+}

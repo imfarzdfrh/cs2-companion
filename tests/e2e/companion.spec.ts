@@ -1,0 +1,27 @@
+import { test, expect } from '@playwright/test'
+test('demo navigation, theme persistence and favorites', async ({ page }) => {
+  await page.goto('/welcome')
+  await page.getByRole('button', { name: 'Explore demo' }).click()
+  await expect(page.getByText('DEMO MODE · SAMPLE DATA')).toBeVisible()
+  await page.getByRole('navigation').getByRole('link', { name: 'Inventory' }).click()
+  await page.getByRole('button', { name: 'Add favorite', exact: true }).click()
+  await page.getByRole('button', { name: 'Favorites', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Amber Circuit Rifle · Concept' })).toBeVisible()
+  await page.getByRole('navigation').getByRole('link', { name: 'Profile' }).click()
+  await page.getByRole('button', { name: 'light', exact: true }).click()
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+  await page.getByRole('navigation').getByRole('link', { name: 'Matches' }).click()
+  await page.getByLabel('Search matches').fill('Mirage')
+  await expect(page.getByRole('link').filter({ hasText: 'Mirage' })).toBeVisible()
+  await page.screenshot({ path: 'artifacts/mobile-light.png', fullPage: true })
+})
+test('website renders honest download state', async ({ page }) => {
+  await page.goto('http://localhost:3001')
+  await expect(page.getByRole('heading', { name: 'YOUR ULTIMATE CS2 COMPANION.' })).toBeVisible()
+  await page.getByRole('link', { name: 'Get the app', exact: true }).click()
+  await expect(
+    page.getByText('No verified public APK is available.', { exact: false })
+  ).toBeVisible()
+  await page.screenshot({ path: 'artifacts/website-mobile.png', fullPage: true })
+})
