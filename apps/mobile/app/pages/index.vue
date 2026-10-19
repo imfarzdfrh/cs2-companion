@@ -85,7 +85,7 @@ const modes = [
         <div>
           <small>FACEIT LEVEL</small><b>{{ stats?.elo ?? '—' }} <span>ELO</span></b>
         </div>
-        <div class="mini-bars">
+        <div v-if="store.demo" class="mini-bars" aria-hidden="true">
           <i v-for="n in 12" :key="n" :style="{ height: 12 + ((n * 7) % 35) + 'px' }" />
         </div>
         <ChevronRight :size="18"

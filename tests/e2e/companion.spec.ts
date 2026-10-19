@@ -14,7 +14,11 @@ test('demo navigation, theme persistence and favorites', async ({ page }) => {
   await page.getByRole('navigation').getByRole('link', { name: 'Matches' }).click()
   await page.getByLabel('Search matches').fill('Mirage')
   await expect(page.getByRole('link').filter({ hasText: 'Mirage' })).toBeVisible()
-  await page.screenshot({ path: 'artifacts/mobile-light.png', fullPage: true })
+  await page.screenshot({
+    path: 'artifacts/mobile-light.png',
+    fullPage: false,
+    animations: 'disabled',
+  })
 })
 test('website renders honest download state', async ({ page }) => {
   await page.goto('http://localhost:3001')
@@ -23,7 +27,11 @@ test('website renders honest download state', async ({ page }) => {
   await expect(
     page.getByText('No verified public APK is available.', { exact: false })
   ).toBeVisible()
-  await page.screenshot({ path: 'artifacts/website-mobile.png', fullPage: true })
+  await page.screenshot({
+    path: 'artifacts/website-mobile.png',
+    fullPage: false,
+    animations: 'disabled',
+  })
 })
 
 test('major screens fit a phone in both themes', async ({ page }) => {
@@ -40,12 +48,17 @@ test('major screens fit a phone in both themes', async ({ page }) => {
       ).toBe(true)
       await page.screenshot({
         path: `artifacts/mobile-${route || 'home'}-${theme}.png`,
-        fullPage: true,
+        fullPage: false,
+        animations: 'disabled',
       })
     }
   }
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.goto('http://localhost:3001')
   await expect(page.getByRole('heading', { name: 'YOUR ULTIMATE CS2 COMPANION.' })).toBeVisible()
-  await page.screenshot({ path: 'artifacts/website-desktop.png', fullPage: true })
+  await page.screenshot({
+    path: 'artifacts/website-desktop.png',
+    fullPage: true,
+    animations: 'disabled',
+  })
 })
