@@ -28,7 +28,9 @@ Expected output after a successful local build: `app/build/outputs/apk/debug/app
 ## Verified versus pending
 
 - Android project generation and `cap sync android`: executed successfully.
-- Gradle/APK/emulator/device run: **not executed**, Android SDK unavailable in this environment.
+- Gradle `assembleDebug`: passed in [GitHub Actions](https://github.com/imfarzdfrh/cs2-companion/actions/runs/39235327425).
+- [Download demo debug APK artifact](https://github.com/imfarzdfrh/cs2-companion/actions/runs/39235327425/artifacts/12179545372), unzip, then install `app-debug.apk`. GitHub sign-in may be required; artifacts have finite retention. The demo uses `https://cs2-companion.example.invalid` intentionally; choose **Explore demo**. It does not connect to a live backend.
+- Emulator/device execution and production release signing: **not executed**. A successful build does not verify device behavior.
 - Native Steam login: deliberately disabled in the UI. A system-browser callback cannot simply reuse its cookies in the Capacitor WebView. Implement and test an HTTPS-associated-link/one-use PKCE exchange and secure native credential storage before enabling it.
 - Native push: not configured. FCM setup, token registration, dispatch and delivery receipts are still required.
 - iOS: preparation only. Add `@capacitor/ios`, run `cap add ios` on an appropriate environment, and validate using macOS/Xcode. No iOS build was performed.
