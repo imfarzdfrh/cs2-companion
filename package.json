@@ -15,8 +15,9 @@
     "node": ">=22"
   },
   "devDependencies": {
-    "prettier": "3.5.3",
-    "@playwright/test": "1.58.2"
+    "@playwright/test": "1.58.2",
+    "eslint": "10.13.0",
+    "prettier": "3.5.3"
   },
   "type": "module"
 }

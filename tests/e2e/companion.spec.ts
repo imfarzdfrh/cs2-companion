@@ -25,3 +25,27 @@ test('website renders honest download state', async ({ page }) => {
   ).toBeVisible()
   await page.screenshot({ path: 'artifacts/website-mobile.png', fullPage: true })
 })
+
+test('major screens fit a phone in both themes', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('cs2-demo', 'true'))
+  for (const theme of ['dark', 'light']) {
+    await page.goto('/profile')
+    await page.getByRole('button', { name: theme, exact: true }).click()
+    for (const route of ['welcome', '', 'stats', 'inventory', 'profile']) {
+      await page.goto('/' + route)
+      await expect(page.locator('main h1').first()).toBeVisible()
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+      ).toBe(true)
+      await page.screenshot({
+        path: `artifacts/mobile-${route || 'home'}-${theme}.png`,
+        fullPage: true,
+      })
+    }
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.goto('http://localhost:3001')
+  await expect(page.getByRole('heading', { name: 'YOUR ULTIMATE CS2 COMPANION.' })).toBeVisible()
+  await page.screenshot({ path: 'artifacts/website-desktop.png', fullPage: true })
+})

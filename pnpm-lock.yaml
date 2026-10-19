@@ -11,6 +11,9 @@ importers:
       '@playwright/test':
         specifier: 1.58.2
         version: 1.58.2
+      eslint:
+        specifier: 10.13.0
+        version: 10.13.0(jiti@2.7.0)(supports-color@10.2.2)
       prettier:
         specifier: 3.5.3
         version: 3.5.3
