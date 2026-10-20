@@ -41,8 +41,7 @@ onMounted(async () => {
             ><ArrowLeft /></NuxtLink
           ><NuxtLink v-else to="/" class="wordmark">CS2<span>COMPANION</span></NuxtLink
           ><NuxtLink to="/notifications" class="icon-button" aria-label="Notifications"
-            ><Bell :size="21" /><i
-          /></NuxtLink>
+            ><Bell :size="21" /></NuxtLink>
         </header>
         <div v-if="store.demo && route.path != '/welcome'" class="demo-strip">
           <span class="status-dot" /> DEMO MODE · SAMPLE DATA
@@ -57,6 +56,7 @@ onMounted(async () => {
             :class="{
               selected: route.path === tab.to || (tab.to !== '/' && route.path.startsWith(tab.to)),
             }"
+            :aria-current="route.path === tab.to || (tab.to !== '/' && route.path.startsWith(tab.to)) ? 'page' : undefined"
             ><component :is="tab.icon" :size="21" /><span>{{ tab.label }}</span></NuxtLink
           >
         </nav>

@@ -8,6 +8,7 @@ import {
   Smartphone,
   ArrowRight,
 } from 'lucide-vue-next'
+useRevealOnScroll()
 const config = useRuntimeConfig(),
   light = ref(false)
 useSeoMeta({
@@ -132,7 +133,7 @@ const faqs = [
       ><b>ANDROID <small>IN DEVELOPMENT</small></b>
     </div>
     <section id="features" class="section">
-      <div class="section-heading">
+      <div class="section-heading" data-reveal>
         <div>
           <span class="eyebrow">LESS GUESSWORK. MORE GAME.</span>
           <h2>Everything around<br />your next great match.</h2>
@@ -148,6 +149,7 @@ const faqs = [
           :id="feature.id"
           :key="feature.id"
           class="feature-card"
+          data-reveal
         >
           <div class="feature-number">
             <component :is="feature.icon" :size="21" /><span>{{ feature.number }}</span>
@@ -165,7 +167,7 @@ const faqs = [
       </div>
     </section>
     <section class="showcase section">
-      <div class="showcase-copy">
+      <div class="showcase-copy" data-reveal>
         <span class="eyebrow">YOUR COMPANION. YOUR WAY.</span>
         <h2>Made for the<br />way you play.</h2>
         <p>
@@ -183,7 +185,7 @@ const faqs = [
         </div>
         <p class="fine">Illustrative app preview · sample data</p>
       </div>
-      <div class="phone-mock" :class="{ light }">
+      <div class="phone-mock" :class="{ light }" data-reveal>
         <div class="phone-camera" />
         <div class="mock-top">9:41 <span>▰ ▰ ▰</span></div>
         <div class="mock-greeting">
@@ -226,7 +228,7 @@ const faqs = [
         </div>
       </div>
     </section>
-    <section id="faq" class="faq section">
+    <section id="faq" class="faq section" data-reveal>
       <div>
         <span class="eyebrow">BEFORE YOU QUEUE UP</span>
         <h2>Good questions.<br />Clear answers.</h2>

@@ -62,3 +62,24 @@ test('major screens fit a phone in both themes', async ({ page }) => {
     animations: 'disabled',
   })
 })
+
+test('website mobile navigation opens, closes and follows anchor links', async ({ page }) => {
+  await page.goto('http://localhost:3001')
+  const toggle = page.getByRole('button', { name: 'Open navigation' })
+  await toggle.click()
+  const nav = page.getByRole('navigation', { name: 'Site navigation' })
+  await expect(nav).toBeVisible()
+  await nav.getByRole('link', { name: 'FAQ' }).click()
+  await expect(nav).toBeHidden()
+  await expect(page).toHaveURL(/#faq$/)
+})
+
+test('invalid demo preferences do not crash the profile page', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('cs2-demo', 'true')
+    localStorage.setItem('cs2-preferences', '{invalid')
+  })
+  await page.goto('/profile')
+  await expect(page.getByRole('heading', { name: 'Your profile' })).toBeVisible()
+  await expect(page.getByRole('checkbox', { name: 'Sound' })).toBeChecked()
+})

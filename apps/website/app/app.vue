@@ -1,28 +1,33 @@
 <script setup lang="ts">
+import { Menu, X } from 'lucide-vue-next'
 const config = useRuntimeConfig()
 const menu = ref(false)
+const route = useRoute()
+watch(() => route.fullPath, () => { menu.value = false })
 </script>
 <template>
   <div>
-    <header class="site-header">
+    <header class="site-header" @keydown.esc="menu = false">
+      <a class="skip-link" href="#site-main">Skip to content</a>
       <NuxtLink to="/" class="logo"
         ><b>//</b><span>CS2<small>COMPANION</small></span></NuxtLink
       ><button
         class="menu-toggle"
-        aria-label="Toggle navigation"
+         :aria-label="menu ? 'Close navigation' : 'Open navigation'"
         :aria-expanded="menu"
+        aria-controls="site-navigation"
         @click="menu = !menu"
       >
-        ☰
+        <X v-if="menu" :size="20" /><Menu v-else :size="20" />
       </button>
-      <nav :class="{ open: menu }" @click="menu = false">
+      <nav id="site-navigation" aria-label="Site navigation" :class="{ open: menu }" @click="menu = false">
         <NuxtLink to="/">Home</NuxtLink><a href="/#features">Features</a><a href="/#stats">Stats</a
         ><a href="/#inventory">Inventory</a><NuxtLink to="/download">Download</NuxtLink
         ><a href="/#faq">FAQ</a>
       </nav>
       <a class="signin" :href="config.public.mobileUrl + '/welcome'">Sign in <span>↗</span></a>
     </header>
-    <main><NuxtPage /></main>
+    <main id="site-main"><NuxtPage /></main>
     <footer>
       <NuxtLink to="/" class="logo"
         ><b>//</b><span>CS2<small>COMPANION</small></span></NuxtLink
