@@ -2,8 +2,10 @@
 import { Menu, X } from 'lucide-vue-next'
 const config = useRuntimeConfig()
 const menu = ref(false)
+const hydrated = ref(false)
 const route = useRoute()
-watch(() => route.fullPath, () => { menu.value = false })
+onMounted(() => { hydrated.value = true })
+watch(() => route.path, () => { menu.value = false })
 </script>
 <template>
   <div>
@@ -13,9 +15,10 @@ watch(() => route.fullPath, () => { menu.value = false })
         ><b>//</b><span>CS2<small>COMPANION</small></span></NuxtLink
       ><button
         class="menu-toggle"
-         :aria-label="menu ? 'Close navigation' : 'Open navigation'"
+        :aria-label="menu ? 'Close navigation' : 'Open navigation'"
         :aria-expanded="menu"
         aria-controls="site-navigation"
+        :disabled="!hydrated"
         @click="menu = !menu"
       >
         <X v-if="menu" :size="20" /><Menu v-else :size="20" />
