@@ -1100,7 +1100,7 @@ body {
 .hero::before {
   content: '';
   position: absolute;
-  z-index: -1;
+  z-index: 0;
   inset: -22%;
   background:
     radial-gradient(ellipse 27% 25% at 22% 35%, #5275ab26, transparent 90%),
@@ -1149,7 +1149,7 @@ body {
   box-shadow: 0 35px 85px #0009, 0 0 45px #577ca514, inset 0 1px #ffffff1e;
   transform: perspective(1100px) rotateX(2deg);
   transition: transform 450ms ease, box-shadow 450ms ease;
-  animation: hero-enter 1000ms 200ms both;
+  animation: preview-reveal 1000ms 200ms both;
 }
 .hero-preview:hover {
   transform: perspective(1100px) rotateX(0) translateY(-6px);
@@ -1233,6 +1233,19 @@ footer a:hover { color: #ffc188; }
   to { transform: translate3d(2%, -2%, 0) scale(1.06); }
 }
 @keyframes draw-chart { to { stroke-dashoffset: 0; } }
+@keyframes preview-reveal {
+  from { opacity: 0; filter: blur(6px); }
+  to { opacity: 1; filter: blur(0); }
+}
+.motion-ready .feature-card.is-visible:hover,
+.motion-ready .feature-card.is-visible:focus-within {
+  transform: translateY(-8px);
+}
+.motion-ready .phone-mock[data-reveal] { transform: rotate(5deg) translateY(16px); }
+.motion-ready .phone-mock[data-reveal].is-visible { transform: rotate(5deg) translateY(0); }
+.motion-ready .phone-mock[data-reveal].is-visible:hover {
+  transform: rotate(0) translateY(-7px);
+}
 @media (max-width: 900px) {
   .site-header { gap: 16px; height: 76px; }
   .site-header nav { display: none; }
