@@ -1,0 +1,6 @@
+{
+  "name": "@cs2/api-client",
+  "private": true,
+  "type": "module",
+  "exports": "./index.ts"
+}

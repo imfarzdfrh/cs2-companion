@@ -1,0 +1,9 @@
+**/node_modules
+**/.nuxt
+**/.output
+**/.venv
+**/__pycache__
+**/.env
+**/*.db
+.git
+apps/mobile/android
