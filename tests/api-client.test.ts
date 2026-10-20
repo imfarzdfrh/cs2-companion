@@ -31,3 +31,15 @@ test('Structured validation errors receive safe UI message', async () => {
   globalThis.fetch = async () => new Response('{"detail":[{"msg":"invalid"}]}', { status: 422 })
   await assert.rejects(() => createApi('https://api.test')('/v1/settings'), /Request failed/)
 })
+
+test('A successful empty response does not cause a JSON parsing error', async () => {
+  globalThis.fetch = async () => new Response(null, { status: 204 })
+  assert.equal(await createApi('https://api.test/')('/v1/favorites/amber', 'DELETE'), null)
+})
+test('A non-JSON server failure becomes a safe API error', async () => {
+  globalThis.fetch = async () => new Response('gateway offline', { status: 502 })
+  await assert.rejects(
+    () => createApi('https://api.test')('/v1/stats'),
+    (e: unknown) => e instanceof ApiError && e.status === 502 && e.message === 'Request failed'
+  )
+})

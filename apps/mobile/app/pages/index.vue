@@ -74,10 +74,10 @@ const modes = [
         </div>
         <div class="stat-card">
           <small>Win rate</small
-          ><strong class="gold">{{ stats?.winRate ? stats.winRate + '%' : '—' }}</strong>
+          ><strong class="gold">{{ stats?.winRate != null ? stats.winRate + '%' : '—' }}</strong>
         </div>
         <div class="stat-card">
-          <small>Headshots</small><strong>{{ stats?.hs ? stats.hs + '%' : '—' }}</strong>
+          <small>Headshots</small><strong>{{ stats?.hs != null ? stats.hs + '%' : '—' }}</strong>
         </div>
       </div>
       <NuxtLink to="/stats" class="elo-card"

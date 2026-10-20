@@ -44,9 +44,18 @@ async function save() {
   }
 }
 onMounted(() => {
-  const prefs = store.demo
-    ? JSON.parse(localStorage.getItem('cs2-preferences') || '{}')
-    : store.profile?.settings || {}
+  let prefs: { sound?: boolean; vibration?: boolean } = store.profile?.settings || {}
+  if (store.demo) {
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem('cs2-preferences') || '{}')
+      prefs = saved && typeof saved === 'object' && !Array.isArray(saved)
+        ? saved as { sound?: boolean; vibration?: boolean }
+        : {}
+    } catch {
+      // Corrupted local settings must never prevent the profile screen from rendering.
+      prefs = {}
+    }
+  }
   sound.value = prefs.sound !== false
   vibration.value = prefs.vibration !== false
 })
@@ -102,6 +111,7 @@ onMounted(() => {
         v-for="t in ['dark', 'light', 'system']"
         :key="t"
         :class="{ active: store.theme === t }"
+        :aria-pressed="store.theme === t"
         @click="store.setTheme(t)"
       >
         {{ t }}
