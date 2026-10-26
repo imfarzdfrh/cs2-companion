@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { ArrowUpRight, ShieldCheck, SunMoon } from 'lucide-vue-next'
+import { Capacitor } from '@capacitor/core'
 const store = useCompanion(),
   config = useRuntimeConfig()
-const isNative = ref(false)
-onMounted(async () => {
-  const { Capacitor } = await import('@capacitor/core')
-  isNative.value = Capacitor.isNativePlatform()
-})
+const isNative = Capacitor.isNativePlatform()
 </script>
 <template>
   <section class="welcome">
@@ -34,6 +31,9 @@ onMounted(async () => {
       /></a>
       <p v-else class="note">
         Native Steam sign-in is not yet enabled. Explore demo mode or sign in using the web app.
+      </p>
+      <p v-if="store.connectionIssue && !isNative" class="offline-notice" role="status">
+        The API is not reachable from this device. You can still explore the offline demo.
       </p>
       <button class="button text-button" @click="store.startDemo">Explore demo →</button>
       <p class="fine-print">

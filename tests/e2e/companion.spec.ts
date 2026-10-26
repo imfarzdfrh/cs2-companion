@@ -83,3 +83,39 @@ test('invalid demo preferences do not crash the profile page', async ({ page }) 
   await expect(page.getByRole('heading', { name: 'Your profile' })).toBeVisible()
   await expect(page.getByRole('checkbox', { name: 'Sound' })).toBeChecked()
 })
+
+test('offline demo boots without any API request after a phone reload', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('cs2-demo', 'true'))
+  let requests = 0
+  await page.route('**/v1/**', async (route) => {
+    requests++
+    await route.abort()
+  })
+  await page.goto('/')
+  await expect(page.getByText('DEMO MODE · SAMPLE DATA')).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Player/ })).toBeVisible()
+  await page.reload()
+  await expect(page.getByText('DEMO MODE · SAMPLE DATA')).toBeVisible()
+  expect(requests).toBe(0)
+})
+
+test('offline first launch offers demo instead of a stuck dashboard', async ({ page }) => {
+  await page.route('**/v1/me', (route) => route.abort())
+  await page.goto('/')
+  await expect(page.getByRole('button', { name: 'Explore demo' })).toBeVisible()
+  await page.getByRole('button', { name: 'Explore demo' }).click()
+  await expect(page.getByText('DEMO MODE · SAMPLE DATA')).toBeVisible()
+})
+
+test('inventory preview modal stays fixed to the phone viewport', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('cs2-demo', 'true'))
+  await page.goto('/inventory')
+  await page.getByRole('button', { name: 'View illustration' }).click()
+  const rect = await page.locator('.modal-backdrop').evaluate((el) => {
+    const box = el.getBoundingClientRect()
+    return { width: box.width, x: box.x, position: getComputedStyle(el).position }
+  })
+  expect(rect.position).toBe('fixed')
+  expect(rect.x).toBe(0)
+  expect(rect.width).toBeGreaterThan(320)
+})

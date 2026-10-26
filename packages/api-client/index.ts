@@ -5,14 +5,14 @@ export class ApiError extends Error {
     this.status = status
   }
 }
-export function createApi(base: string, csrf: () => string = () => '') {
+export function createApi(base: string, csrf: () => string = () => '', timeoutMs = 15000) {
   return async function request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
     const response = await fetch(base.replace(/\/+$/, '') + path, {
       method,
       credentials: 'include',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf() },
       body: body === undefined ? undefined : JSON.stringify(body),
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(timeoutMs),
     })
     // Some successful requests have no body (204); error proxies may return plain text.
     const payload = await response.text()
