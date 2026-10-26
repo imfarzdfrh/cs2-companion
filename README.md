@@ -76,6 +76,7 @@ pnpm exec playwright test
 - [FACEIT and Steam setup](docs/PROVIDERS.md)
 - [Match acceptance feasibility](docs/MATCH_ACCEPT_FEASIBILITY.md)
 - [Android and iOS preparation](docs/ANDROID.md)
+- [Android emulator, phone QA and troubleshooting](docs/ANDROID_DEVICE_QA.md)
 - [API and data model](docs/API.md)
 - [Architecture and notifications](docs/ARCHITECTURE.md)
 - [Verification and known limitations](docs/VERIFICATION.md)

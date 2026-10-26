@@ -44,3 +44,12 @@ Manually inspect mobile/website widths 360, 390, 768, 900 and 1440px; light/dark
 5. Complete independent WCAG/accessibility and performance audits. Verify the provenance and permissions of any future artwork/assets.
 
 Do not infer that a previous successful workflow run validates new commits. Keep this PR unmerged until current CI and manual visual checks are reviewed.
+
+## 2026-10-26 native runtime follow-up
+
+- Avoided a 15-second blocked startup against the demo APK's deliberately non-routable API; persisted sample mode now boots offline without probing the server.
+- Delayed rendering data-fetching routes until unauthenticated users reach welcome.
+- Fixed small-screen safe-area layout and viewport handling, and removed a page transform that could misposition fixed dialogs.
+- Added Android emulator execution and offline reopening smoke test on API 35. [Emulator success and screenshots](https://github.com/imfarzdfrh/cs2-companion/actions/runs/40357905383).
+- GitHub Actions Playwright jobs pinned to Ubuntu 24.04 because this lockfile's Playwright cannot install Chromium on Ubuntu 26.04.
+- Device-specific manual QA and live Steam/FACEIT/native authentication remain unverified. See [Android test runbook](ANDROID_DEVICE_QA.md).
