@@ -11,6 +11,7 @@ import {
 } from 'lucide-vue-next'
 const store = useCompanion(),
   route = useRoute()
+const shellReady = ref(false)
 const tabs = [
   { to: '/', label: 'Home', icon: House },
   { to: '/stats', label: 'Stats', icon: ChartNoAxesCombined },
@@ -19,8 +20,15 @@ const tabs = [
   { to: '/profile', label: 'Profile', icon: UserRound },
 ]
 onMounted(async () => {
-  await store.init()
-  if (!store.profile && !store.demo && route.path != '/welcome') await navigateTo('/welcome')
+  try {
+    await store.init()
+    // Do not mount protected/data-fetching pages before the first redirect.
+    if (!store.profile && !store.demo && route.path !== '/welcome') {
+      await navigateTo('/welcome', { replace: true })
+    }
+  } finally {
+    shellReady.value = true
+  }
 })
 </script>
 <template>
@@ -32,7 +40,7 @@ onMounted(async () => {
       <div class="desktop-caption"><Flame :size="18" /> BUILT FOR YOUR NEXT LEVEL</div>
     </aside>
     <div class="phone-content">
-      <template v-if="store.ready">
+      <template v-if="store.ready && shellReady">
         <header v-if="route.path != '/welcome'" class="app-header">
           <NuxtLink
             v-if="route.path.split('/').filter(Boolean).length > 1"
@@ -41,8 +49,7 @@ onMounted(async () => {
             ><ArrowLeft /></NuxtLink
           ><NuxtLink v-else to="/" class="wordmark">CS2<span>COMPANION</span></NuxtLink
           ><NuxtLink to="/notifications" class="icon-button" aria-label="Notifications"
-            ><Bell :size="21" /><i
-          /></NuxtLink>
+            ><Bell :size="21" /></NuxtLink>
         </header>
         <div v-if="store.demo && route.path != '/welcome'" class="demo-strip">
           <span class="status-dot" /> DEMO MODE · SAMPLE DATA
@@ -57,6 +64,7 @@ onMounted(async () => {
             :class="{
               selected: route.path === tab.to || (tab.to !== '/' && route.path.startsWith(tab.to)),
             }"
+            :aria-current="route.path === tab.to || (tab.to !== '/' && route.path.startsWith(tab.to)) ? 'page' : undefined"
             ><component :is="tab.icon" :size="21" /><span>{{ tab.label }}</span></NuxtLink
           >
         </nav>

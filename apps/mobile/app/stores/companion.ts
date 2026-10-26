@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { createApi } from '../../../../packages/api-client'
+import { Capacitor } from '@capacitor/core'
+import { ApiError, createApi } from '../../../../packages/api-client'
 import type { Profile, Stats, Match, CatalogItem, Notice } from '../../../../packages/types'
 
 export const useCompanion = defineStore('companion', () => {
@@ -10,8 +11,12 @@ export const useCompanion = defineStore('companion', () => {
     theme = ref('system'),
     favorites = ref<string[]>([])
   const toast = ref(''),
-    search = ref('')
+    search = ref(''),
+    connectionIssue = ref(false)
   const api = createApi(config.public.apiBase, () => profile.value?.csrf || '')
+  // Session discovery must not hold a native WebView on its splash screen.
+  const bootstrapApi = createApi(config.public.apiBase, () => profile.value?.csrf || '', 3500)
+  let themeListenerAdded = false
   function message(value: string) {
     toast.value = value
     setTimeout(() => {
@@ -29,36 +34,61 @@ export const useCompanion = defineStore('companion', () => {
     localStorage.setItem('cs2-theme', value)
     applyTheme()
   }
-  async function init() {
-    theme.value = localStorage.getItem('cs2-theme') || 'system'
-    applyTheme()
-    if (!ready.value)
-      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme)
-    demo.value = localStorage.getItem('cs2-demo') === 'true'
+  function restoreDemoFavorites() {
     try {
-      profile.value = await api<Profile>('/v1/me')
-      demo.value = false
-      favorites.value = await api<string[]>('/v1/favorites')
+      const saved: unknown = JSON.parse(localStorage.getItem('cs2-favorites') || '[]')
+      favorites.value = Array.isArray(saved)
+        ? saved.filter((value): value is string => typeof value === 'string')
+        : []
     } catch {
+      favorites.value = []
+    }
+  }
+
+  async function init() {
+    const savedTheme = localStorage.getItem('cs2-theme')
+    theme.value = ['light', 'dark', 'system'].includes(savedTheme || '')
+      ? savedTheme!
+      : 'system'
+    applyTheme()
+    if (!themeListenerAdded) {
+      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme)
+      themeListenerAdded = true
+    }
+    demo.value = localStorage.getItem('cs2-demo') === 'true'
+    connectionIssue.value = false
+
+    // Native account exchange has not been implemented yet. Do not request
+    // a browser-cookie session from the unreachable demo APK endpoint.
+    if (demo.value || Capacitor.isNativePlatform()) {
       profile.value = null
+      if (demo.value) restoreDemoFavorites()
+      ready.value = true
+      return
     }
-    if (demo.value) {
-      try {
-        const saved = JSON.parse(localStorage.getItem('cs2-favorites') || '[]')
-        favorites.value = Array.isArray(saved)
-          ? saved.filter((v: unknown) => typeof v === 'string')
-          : []
-      } catch {
-        favorites.value = []
-      }
+
+    try {
+      profile.value = await bootstrapApi<Profile>('/v1/me')
+      // Favorites are secondary data: never gate first paint on this request.
+      void api<string[]>('/v1/favorites')
+        .then((items) => { if (!demo.value && profile.value) favorites.value = items })
+        .catch(() => { /* Favorites can be retried from the catalog. */ })
+    } catch (error) {
+      profile.value = null
+      favorites.value = []
+      // A 401 means not signed in; offline/invalid backend is a separate state.
+      connectionIssue.value = !(error instanceof ApiError && error.status === 401)
+    } finally {
+      ready.value = true
     }
-    ready.value = true
   }
   function startDemo() {
     demo.value = true
     profile.value = null
+    connectionIssue.value = false
+    restoreDemoFavorites()
     localStorage.setItem('cs2-demo', 'true')
-    navigateTo('/')
+    void navigateTo('/')
   }
   async function logout() {
     if (profile.value) await api('/v1/auth/logout', 'POST')
@@ -156,6 +186,7 @@ export const useCompanion = defineStore('companion', () => {
     demo,
     ready,
     theme,
+    connectionIssue,
     favorites,
     toast,
     search,

@@ -30,7 +30,10 @@ Expected output after a successful local build: `app/build/outputs/apk/debug/app
 - Android project generation and `cap sync android`: executed successfully.
 - Gradle `assembleDebug`: passed in [GitHub Actions](https://github.com/imfarzdfrh/cs2-companion/actions/runs/39235327425).
 - [Download demo debug APK artifact](https://github.com/imfarzdfrh/cs2-companion/actions/runs/39235327425/artifacts/12179545372), unzip, then install `app-debug.apk`. GitHub sign-in may be required; artifacts have finite retention. The demo uses `https://cs2-companion.example.invalid` intentionally; choose **Explore demo**. It does not connect to a live backend.
-- Emulator/device execution and production release signing: **not executed**. A successful build does not verify device behavior.
+- An Android **API 35 / Pixel 6 emulator smoke test passed** on 2026-10-26 for commit `0f7c999f`: native WebView welcome, selecting the explicitly labeled demo, and reopening offline. [CI run and screenshots](https://github.com/imfarzdfrh/cs2-companion/actions/runs/40357905383). This is a demo-only test, not live backend/device certification.
+- **Physical Android handset testing, multi-device safe area/keyboard QA and production release signing remain pending.**
 - Native Steam login: deliberately disabled in the UI. A system-browser callback cannot simply reuse its cookies in the Capacitor WebView. Implement and test an HTTPS-associated-link/one-use PKCE exchange and secure native credential storage before enabling it.
 - Native push: not configured. FCM setup, token registration, dispatch and delivery receipts are still required.
 - iOS: preparation only. Add `@capacitor/ios`, run `cap add ios` on an appropriate environment, and validate using macOS/Xcode. No iOS build was performed.
+
+See [physical device QA and troubleshooting](ANDROID_DEVICE_QA.md) before declaring an Android release ready.
