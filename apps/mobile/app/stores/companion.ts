@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { Capacitor } from '@capacitor/core'
-import { ApiError } from '../../../../packages/api-client'
-import { createApi } from '../../../../packages/api-client'
+import { ApiError, createApi } from '../../../../packages/api-client'
 import type { Profile, Stats, Match, CatalogItem, Notice } from '../../../../packages/types'
 
 export const useCompanion = defineStore('companion', () => {
