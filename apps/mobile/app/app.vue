@@ -1,16 +1,10 @@
 <script setup lang="ts">
-import {
-  House,
-  ChartNoAxesCombined,
-  Crosshair,
-  Box,
-  UserRound,
-  Bell,
-  ArrowLeft,
-  Flame,
-} from 'lucide-vue-next'
-const store = useCompanion(),
-  route = useRoute()
+import { House, ChartNoAxesCombined, Crosshair, Box, UserRound, Bell, ArrowLeft } from 'lucide-vue-next'
+
+const store = useCompanion()
+const route = useRoute()
+const shellReady = ref(false)
+
 const tabs = [
   { to: '/', label: 'Home', icon: House },
   { to: '/stats', label: 'Stats', icon: ChartNoAxesCombined },
@@ -18,38 +12,70 @@ const tabs = [
   { to: '/inventory', label: 'Inventory', icon: Box },
   { to: '/profile', label: 'Profile', icon: UserRound },
 ]
+
+const isWelcome = computed(() => route.path === '/welcome')
+const isMatchDetail = computed(() => /^\/matches\/[^/]+$/.test(route.path))
+
 onMounted(async () => {
-  await store.init()
-  if (!store.profile && !store.demo && route.path != '/welcome') await navigateTo('/welcome')
+  try {
+    await store.init(isWelcome.value)
+    if (!store.profile && !store.demo && !isWelcome.value) {
+      await navigateTo('/welcome', { replace: true })
+    }
+  } finally {
+    shellReady.value = true
+  }
 })
+
+watch(
+  () => route.path,
+  async (path) => {
+    if (!shellReady.value || path === '/welcome') return
+    if (!store.profile && !store.demo) {
+      await navigateTo('/welcome', { replace: true })
+    }
+  }
+)
 </script>
+
 <template>
   <div class="app-frame">
-    <aside class="desktop-brand">
-      <span class="brand-mark">//</span>
-      <h1>CS2<br /><em>COMPANION</em></h1>
-      <p>Your stats.<br />Your progress.<br />Your game.</p>
-      <div class="desktop-caption"><Flame :size="18" /> BUILT FOR YOUR NEXT LEVEL</div>
-    </aside>
     <div class="phone-content">
-      <template v-if="store.ready">
-        <header v-if="route.path != '/welcome'" class="app-header">
+      <template v-if="shellReady && store.ready">
+        <header v-if="!isWelcome" class="app-header">
           <NuxtLink
-            v-if="route.path.split('/').filter(Boolean).length > 1"
+            v-if="isMatchDetail"
             to="/matches"
+            class="header-back"
             aria-label="Back to matches"
-            ><ArrowLeft /></NuxtLink
-          ><NuxtLink v-else to="/" class="wordmark">CS2<span>COMPANION</span></NuxtLink
-          ><NuxtLink to="/notifications" class="icon-button" aria-label="Notifications"
-            ><Bell :size="21" /><i
-          /></NuxtLink>
+          >
+            <ArrowLeft :size="21" />
+          </NuxtLink>
+          <NuxtLink v-else to="/" class="wordmark" aria-label="CS2 Companion home">
+            CS2<span>COMPANION</span>
+          </NuxtLink>
+          <NuxtLink to="/notifications" class="icon-button" aria-label="Notifications">
+            <Bell :size="21" />
+          </NuxtLink>
         </header>
-        <div v-if="store.demo && route.path != '/welcome'" class="demo-strip">
-          <span class="status-dot" /> DEMO MODE · SAMPLE DATA
+
+        <div v-if="store.demo && !isWelcome" class="demo-strip">
+          <span class="status-dot" />
+          <span>DEMO MODE · SAMPLE DATA</span>
           <NuxtLink to="/welcome">Connect account ↗</NuxtLink>
         </div>
-        <main><NuxtPage /></main>
-        <nav v-if="route.path != '/welcome'" class="bottom-nav" aria-label="Main navigation">
+
+        <div v-else-if="store.connectionIssue && !isWelcome" class="connection-strip" role="status">
+          <span class="status-dot muted" />
+          <span>Server unavailable · showing connection options</span>
+          <NuxtLink to="/welcome">Details</NuxtLink>
+        </div>
+
+        <main id="main-content">
+          <NuxtPage />
+        </main>
+
+        <nav v-if="!isWelcome" class="bottom-nav" aria-label="Main navigation">
           <NuxtLink
             v-for="tab in tabs"
             :key="tab.to"
@@ -57,15 +83,25 @@ onMounted(async () => {
             :class="{
               selected: route.path === tab.to || (tab.to !== '/' && route.path.startsWith(tab.to)),
             }"
-            ><component :is="tab.icon" :size="21" /><span>{{ tab.label }}</span></NuxtLink
+            :aria-current="
+              route.path === tab.to || (tab.to !== '/' && route.path.startsWith(tab.to))
+                ? 'page'
+                : undefined
+            "
           >
+            <component :is="tab.icon" :size="21" />
+            <span>{{ tab.label }}</span>
+          </NuxtLink>
         </nav>
       </template>
-      <div v-else class="boot">
+
+      <div v-else class="boot" role="status" aria-live="polite">
         <span class="brand-mark">//</span>
-        <p>Loading your companion…</p>
+        <span class="boot-spinner" aria-hidden="true" />
+        <p>Preparing your companion…</p>
       </div>
     </div>
+
     <div v-if="store.toast" class="toast" role="status">{{ store.toast }}</div>
   </div>
 </template>

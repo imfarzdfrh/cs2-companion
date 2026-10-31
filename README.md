@@ -1,8 +1,8 @@
 # CS2 Companion
 
-A working **development foundation**, not a production-complete release. Separate Nuxt 4 mobile and promotional applications, FastAPI, SQLAlchemy, Alembic, PostgreSQL deployment configuration and a Capacitor Android project.
+A working **development foundation**, not a production-complete release. A phone-first Nuxt 4 mobile web app, an independent Nuxt website, FastAPI, SQLAlchemy, Alembic and PostgreSQL deployment configuration.
 
-- Mobile: `apps/mobile` — explicit demo, dashboard, stats, match history/details, concept catalog, favorites, notifications and profile.
+- Mobile: `apps/mobile` — a dedicated Nuxt experience designed for phone browsers, with dashboard, stats, match history/details, concept catalog, favorites, notifications and profile.
 - Website: `apps/website` — independent SSR marketing experience, theme showcase, download/status, FAQ and preliminary policy pages.
 - Backend: `backend` — Steam OpenID verification, server-side FACEIT adapters, cookie sessions/CSRF, persistence, snapshots and authenticated webhook intake.
 - Shared: `packages/types`, `packages/api-client`, `packages/ui`, `packages/config`.
@@ -16,7 +16,7 @@ Install Node 24 and Python 3.12 (including `python3.12-venv`) first. Then:
 ```bash
 git clone https://github.com/imfarzdfrh/cs2-companion.git
 cd cs2-companion
-git switch feat/full-platform-foundation
+git switch main
 npm install -g pnpm@11.25.0
 pnpm install --frozen-lockfile
 cp .env.example backend/.env
@@ -38,7 +38,7 @@ pnpm dev:mobile
 pnpm dev:website
 ```
 
-Mobile: http://localhost:3000 — choose **Explore demo**. Website: http://localhost:3001. API docs: http://localhost:8000/docs.
+Mobile Nuxt app: http://localhost:3000 — choose **Explore demo**. Website: http://localhost:3001. API docs: http://localhost:8000/docs. The mobile app is tested in a phone browser; Android Studio is not part of this Nuxt development workflow.
 
 For scheduled snapshots, with the backend environment active:
 
@@ -75,7 +75,7 @@ pnpm exec playwright test
 - [راهنمای اجرای اوبونتو](docs/SETUP_FA.md)
 - [FACEIT and Steam setup](docs/PROVIDERS.md)
 - [Match acceptance feasibility](docs/MATCH_ACCEPT_FEASIBILITY.md)
-- [Android and iOS preparation](docs/ANDROID.md)
+- [Test the Nuxt mobile app on a real phone](docs/MOBILE_TESTING.md)
 - [API and data model](docs/API.md)
 - [Architecture and notifications](docs/ARCHITECTURE.md)
 - [Verification and known limitations](docs/VERIFICATION.md)
