@@ -15,33 +15,42 @@ export function createApi(
 ) {
   return async function request<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
     const url = base.replace(/\/+$/, '') + (path.startsWith('/') ? path : '/' + path)
-    const response = await fetch(url, {
-      method,
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf() },
-      body: body === undefined ? undefined : JSON.stringify(body),
-      signal: AbortSignal.timeout(timeoutMs),
-    })
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), timeoutMs)
 
-    const payload = await response.text()
-    let data: unknown = null
+    try {
+      const response = await fetch(url, {
+        method,
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf() },
+        body: body === undefined ? undefined : JSON.stringify(body),
+        signal: controller.signal,
+      })
 
-    if (payload) {
-      try {
-        data = JSON.parse(payload)
-      } catch {
-        if (response.ok) throw new ApiError(response.status, 'The server returned an invalid response')
+      const payload = await response.text()
+      let data: unknown = null
+
+      if (payload) {
+        try {
+          data = JSON.parse(payload)
+        } catch {
+          if (response.ok) {
+            throw new ApiError(response.status, 'The server returned an invalid response')
+          }
+        }
       }
-    }
 
-    if (!response.ok) {
-      const detail =
-        data && typeof data === 'object' && 'detail' in data
-          ? (data as { detail?: unknown }).detail
-          : undefined
-      throw new ApiError(response.status, typeof detail === 'string' ? detail : 'Request failed')
-    }
+      if (!response.ok) {
+        const detail =
+          data && typeof data === 'object' && 'detail' in data
+            ? (data as { detail?: unknown }).detail
+            : undefined
+        throw new ApiError(response.status, typeof detail === 'string' ? detail : 'Request failed')
+      }
 
-    return data as T
+      return data as T
+    } finally {
+      clearTimeout(timeout)
+    }
   }
 }
