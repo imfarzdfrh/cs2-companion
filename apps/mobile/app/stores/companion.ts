@@ -1,88 +1,186 @@
 import { defineStore } from 'pinia'
-import { createApi } from '../../../../packages/api-client'
+import { ApiError, createApi } from '../../../../packages/api-client'
 import type { Profile, Stats, Match, CatalogItem, Notice } from '../../../../packages/types'
 
 export const useCompanion = defineStore('companion', () => {
   const config = useRuntimeConfig()
-  const profile = ref<Profile | null>(null),
-    demo = ref(false),
-    ready = ref(false),
-    theme = ref('system'),
-    favorites = ref<string[]>([])
-  const toast = ref(''),
-    search = ref('')
+  const profile = ref<Profile | null>(null)
+  const demo = ref(false)
+  const ready = ref(false)
+  const theme = ref('system')
+  const favorites = ref<string[]>([])
+  const toast = ref('')
+  const search = ref('')
+  const connectionIssue = ref(false)
+
   const api = createApi(config.public.apiBase, () => profile.value?.csrf || '')
+  const bootstrapApi = createApi(config.public.apiBase, () => profile.value?.csrf || '', 4500)
+  let initTask: Promise<void> | null = null
+  let themeMedia: MediaQueryList | null = null
+
+  function readStorage(key: string): string | null {
+    try {
+      return localStorage.getItem(key)
+    } catch {
+      return null
+    }
+  }
+
+  function writeStorage(key: string, value: string) {
+    try {
+      localStorage.setItem(key, value)
+    } catch {
+      message('Browser storage is unavailable. Some preferences may not persist.')
+    }
+  }
+
+  function removeStorage(key: string) {
+    try {
+      localStorage.removeItem(key)
+    } catch {
+      // Continue signing out locally even when browser storage is restricted.
+    }
+  }
+
   function message(value: string) {
     toast.value = value
     setTimeout(() => {
       if (toast.value === value) toast.value = ''
     }, 4000)
   }
+
   function applyTheme() {
-    const dark =
-      theme.value === 'dark' ||
-      (theme.value === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
+    if (typeof document === 'undefined') return
+    const prefersDark = themeMedia?.matches ?? true
+    const dark = theme.value === 'dark' || (theme.value === 'system' && prefersDark)
     document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
   }
+
   function setTheme(value: string) {
+    if (!['system', 'dark', 'light'].includes(value)) return
     theme.value = value
-    localStorage.setItem('cs2-theme', value)
+    writeStorage('cs2-theme', value)
     applyTheme()
   }
-  async function init() {
-    theme.value = localStorage.getItem('cs2-theme') || 'system'
-    applyTheme()
-    if (!ready.value)
-      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme)
-    demo.value = localStorage.getItem('cs2-demo') === 'true'
+
+  function restoreDemoFavorites() {
     try {
-      profile.value = await api<Profile>('/v1/me')
-      demo.value = false
-      favorites.value = await api<string[]>('/v1/favorites')
+      const saved: unknown = JSON.parse(readStorage('cs2-favorites') || '[]')
+      favorites.value = Array.isArray(saved)
+        ? saved.filter((item): item is string => typeof item === 'string')
+        : []
     } catch {
-      profile.value = null
+      favorites.value = []
     }
-    if (demo.value) {
-      try {
-        const saved = JSON.parse(localStorage.getItem('cs2-favorites') || '[]')
-        favorites.value = Array.isArray(saved)
-          ? saved.filter((v: unknown) => typeof v === 'string')
-          : []
-      } catch {
-        favorites.value = []
-      }
-    }
-    ready.value = true
   }
+
+  async function refreshProfile() {
+    profile.value = await api<Profile>('/v1/me')
+    connectionIssue.value = false
+    return profile.value
+  }
+
+  function init(skipSession = false): Promise<void> {
+    if (ready.value) return Promise.resolve()
+    if (initTask) return initTask
+
+    initTask = (async () => {
+      try {
+        const savedTheme = readStorage('cs2-theme')
+        theme.value = ['system', 'dark', 'light'].includes(savedTheme || '')
+          ? savedTheme!
+          : 'system'
+        themeMedia = window.matchMedia('(prefers-color-scheme: dark)')
+        themeMedia.addEventListener('change', applyTheme)
+        applyTheme()
+
+        demo.value = readStorage('cs2-demo') === 'true'
+
+        // Demo mode is local by design: never wait for a backend request to show sample screens.
+        if (demo.value || skipSession) {
+          profile.value = null
+          if (demo.value) {
+            restoreDemoFavorites()
+          } else {
+            // Keep the welcome screen instant; verify backend reachability in the background.
+            void bootstrapApi<{ status: string }>('/health')
+              .then(() => { connectionIssue.value = false })
+              .catch(() => { connectionIssue.value = true })
+          }
+          return
+        }
+
+        try {
+          profile.value = await bootstrapApi<Profile>('/v1/me')
+          connectionIssue.value = false
+          // Favorites are secondary data; do not delay the first screen for them.
+          void api<string[]>('/v1/favorites')
+            .then((items) => {
+              if (!demo.value && profile.value) favorites.value = items
+            })
+            .catch(() => {
+              // A favorites failure must not block the dashboard.
+            })
+        } catch (error) {
+          profile.value = null
+          favorites.value = []
+          connectionIssue.value = !(error instanceof ApiError && error.status === 401)
+        }
+      } finally {
+        ready.value = true
+      }
+    })()
+
+    return initTask
+  }
+
   function startDemo() {
     demo.value = true
     profile.value = null
-    localStorage.setItem('cs2-demo', 'true')
-    navigateTo('/')
+    connectionIssue.value = false
+    restoreDemoFavorites()
+    writeStorage('cs2-demo', 'true')
+    ready.value = true
+    void navigateTo('/')
   }
+
   async function logout() {
-    if (profile.value) await api('/v1/auth/logout', 'POST')
-    profile.value = null
-    demo.value = false
-    localStorage.removeItem('cs2-demo')
-    navigateTo('/welcome')
+    try {
+      if (profile.value) await api('/v1/auth/logout', 'POST')
+    } finally {
+      profile.value = null
+      demo.value = false
+      favorites.value = []
+      connectionIssue.value = false
+      removeStorage('cs2-demo')
+      removeStorage('cs2-favorites')
+      void navigateTo('/welcome')
+    }
   }
+
   async function toggleFavorite(id: string) {
     const exists = favorites.value.includes(id)
     try {
-      if (!demo.value) await api('/v1/favorites/' + id, exists ? 'DELETE' : 'PUT')
-      favorites.value = exists ? favorites.value.filter((x) => x !== id) : [...favorites.value, id]
-      if (demo.value) localStorage.setItem('cs2-favorites', JSON.stringify(favorites.value))
-    } catch (e) {
-      message((e as Error).message)
+      if (!demo.value) {
+        await api('/v1/favorites/' + encodeURIComponent(id), exists ? 'DELETE' : 'PUT')
+      }
+      favorites.value = exists
+        ? favorites.value.filter((item) => item !== id)
+        : [...favorites.value, id]
+      if (demo.value) writeStorage('cs2-favorites', JSON.stringify(favorites.value))
+    } catch (error) {
+      message((error as Error).message || 'Could not update favorite')
     }
   }
+
   const demoMatches: Match[] = [
     { id: 'demo-1', map: 'Dust II', result: 'Victory', score: '13 : 9', date: 1792317600 },
     { id: 'demo-2', map: 'Mirage', result: 'Defeat', score: '8 : 13', date: 1792231200 },
     { id: 'demo-3', map: 'Inferno', result: 'Victory', score: '13 : 11', date: 1792144800 },
     { id: 'demo-4', map: 'Ancient', result: 'Victory', score: '13 : 7', date: 1792058400 },
   ]
+
   const demoCatalog: CatalogItem[] = [
     {
       id: 'amber',
@@ -115,6 +213,7 @@ export const useCompanion = defineStore('companion', () => {
       price: null,
     },
   ]
+
   async function stats(): Promise<Stats> {
     return demo.value
       ? {
@@ -129,6 +228,7 @@ export const useCompanion = defineStore('companion', () => {
         }
       : api<Stats>('/v1/stats')
   }
+
   async function matches(offset = 0): Promise<Match[]> {
     return demo.value
       ? offset
@@ -136,9 +236,11 @@ export const useCompanion = defineStore('companion', () => {
         : demoMatches
       : (await api<{ items: Match[] }>('/v1/matches?offset=' + offset)).items
   }
+
   async function catalog() {
     return demo.value ? demoCatalog : (await api<{ items: CatalogItem[] }>('/v1/catalog')).items
   }
+
   async function notifications(): Promise<Notice[]> {
     return demo.value
       ? [
@@ -151,6 +253,7 @@ export const useCompanion = defineStore('companion', () => {
         ]
       : api<Notice[]>('/v1/notifications')
   }
+
   return {
     profile,
     demo,
@@ -159,9 +262,11 @@ export const useCompanion = defineStore('companion', () => {
     favorites,
     toast,
     search,
+    connectionIssue,
     api,
     message,
     init,
+    refreshProfile,
     setTheme,
     startDemo,
     logout,

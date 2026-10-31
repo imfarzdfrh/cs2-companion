@@ -52,6 +52,7 @@ watch(days, load)
         ]"
         :key="period.v"
         :class="{ active: days === period.v }"
+        :aria-pressed="days === period.v"
         @click="days = period.v"
       >
         {{ period.t }}
@@ -101,8 +102,8 @@ watch(days, load)
         <div
           v-for="metric in [
             { label: 'K/D ratio', value: data?.kd },
-            { label: 'Win rate', value: data?.winRate ? data.winRate + '%' : null },
-            { label: 'Headshots', value: data?.hs ? data.hs + '%' : null },
+            { label: 'Win rate', value: data?.winRate != null ? data.winRate + '%' : null },
+            { label: 'Headshots', value: data?.hs != null ? data.hs + '%' : null },
             { label: 'Matches', value: data?.matches },
             { label: 'Win streak', value: data?.streak },
             { label: 'K/R', value: null },

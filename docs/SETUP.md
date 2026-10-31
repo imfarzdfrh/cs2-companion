@@ -42,3 +42,8 @@ This branch is not production approved. Before deployment:
 - `503`: missing FACEIT key or provider rate limit/unavailability. Do not enable fake live results.
 - `404` player: no accessible CS2 FACEIT record for the verified SteamID.
 - Private profiles: display name/avatar may be unavailable; verified identity is separate from profile visibility.
+
+
+## Test the mobile Nuxt app on a real phone
+
+The mobile app is a Nuxt web application. Run it in the phone's browser over the same trusted Wi-Fi network; do not open `localhost` on the phone, because that points to the phone itself. Follow [MOBILE_TESTING.md](MOBILE_TESTING.md) for exact LAN setup, environment values and troubleshooting. Android Studio is not required for this workflow.

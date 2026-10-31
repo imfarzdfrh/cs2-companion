@@ -30,7 +30,20 @@ const filtered = computed(() =>
       (i.name + ' ' + i.weapon).toLowerCase().includes(query.value.toLowerCase())
   )
 )
-onMounted(load)
+function onPreviewKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') preview.value = false
+}
+watch(preview, (open) => {
+  document.body.style.overflow = open ? 'hidden' : ''
+})
+onMounted(() => {
+  void load()
+  window.addEventListener('keydown', onPreviewKeydown)
+})
+onUnmounted(() => {
+  window.removeEventListener('keydown', onPreviewKeydown)
+  document.body.style.overflow = ''
+})
 </script>
 <template>
   <section class="page inventory">
@@ -43,6 +56,7 @@ onMounted(load)
         v-for="t in ['Skins', 'Loadouts', 'Favorites']"
         :key="t"
         :class="{ active: tab === t }"
+        :aria-pressed="tab === t"
         @click="tab = t"
       >
         {{ t }}
@@ -84,6 +98,7 @@ onMounted(load)
             v-for="item in items"
             :key="item.id"
             :class="{ active: selected.id === item.id }"
+            :aria-pressed="selected.id === item.id"
             :aria-label="item.name"
             @click="selected = item"
           >

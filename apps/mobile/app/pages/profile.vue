@@ -8,8 +8,8 @@ async function connect() {
   busy.value = true
   try {
     await store.api('/v1/accounts/faceit', 'POST')
-    await store.init()
-    store.message('FACEIT public account resolved via your SteamID')
+    await store.refreshProfile()
+    store.message('FACEIT public account linked using your verified SteamID')
   } catch (e) {
     store.message((e as Error).message)
   } finally {
@@ -19,7 +19,7 @@ async function connect() {
 async function disconnect() {
   try {
     await store.api('/v1/accounts/faceit', 'DELETE')
-    await store.init()
+    await store.refreshProfile()
   } catch (e) {
     store.message((e as Error).message)
   }
@@ -44,9 +44,19 @@ async function save() {
   }
 }
 onMounted(() => {
-  const prefs = store.demo
-    ? JSON.parse(localStorage.getItem('cs2-preferences') || '{}')
-    : store.profile?.settings || {}
+  let prefs: { sound?: boolean; vibration?: boolean } = {}
+  if (store.demo) {
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem('cs2-preferences') || '{}')
+      if (saved && typeof saved === 'object' && !Array.isArray(saved)) {
+        prefs = saved as { sound?: boolean; vibration?: boolean }
+      }
+    } catch {
+      // Ignore corrupt local preferences and keep safe defaults.
+    }
+  } else {
+    prefs = (store.profile?.settings || {}) as { sound?: boolean; vibration?: boolean }
+  }
   sound.value = prefs.sound !== false
   vibration.value = prefs.vibration !== false
 })
@@ -102,6 +112,7 @@ onMounted(() => {
         v-for="t in ['dark', 'light', 'system']"
         :key="t"
         :class="{ active: store.theme === t }"
+        :aria-pressed="store.theme === t"
         @click="store.setTheme(t)"
       >
         {{ t }}

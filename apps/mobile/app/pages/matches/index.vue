@@ -49,6 +49,7 @@ onMounted(() => load())
         v-for="value in ['All', 'Victory', 'Defeat']"
         :key="value"
         :class="{ active: filter === value }"
+        :aria-pressed="filter === value"
         @click="filter = value"
       >
         {{ value }}

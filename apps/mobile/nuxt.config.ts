@@ -15,7 +15,12 @@ export default defineNuxtConfig({
   app: {
     head: {
       title: 'CS2 Companion',
-      meta: [{ name: 'description', content: 'Your stats. Your progress. Your game.' }],
+      meta: [
+        { name: 'description', content: 'Your stats. Your progress. Your game.' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
+        { name: 'theme-color', content: '#0c0f12' },
+        { name: 'color-scheme', content: 'dark light' },
+      ],
     },
   },
 })

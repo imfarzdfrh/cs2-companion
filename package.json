@@ -4,6 +4,7 @@
   "packageManager": "pnpm@11.25.0",
   "scripts": {
     "dev:mobile": "pnpm --filter @cs2/mobile dev",
+    "dev:mobile:lan": "pnpm --filter @cs2/mobile dev:lan",
     "dev:website": "pnpm --filter @cs2/website dev",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",

@@ -1,6 +1,6 @@
 # Architecture
 
-The two Nuxt applications share TypeScript contracts, a fetch-based typed client and base color tokens, but own their pages, layouts and styles. The mobile application is a client-rendered static build suitable for Capacitor. The website is an independent SSR Node build.
+The two Nuxt applications share TypeScript contracts, a fetch-based typed client and base color tokens, but own their pages, layouts and styles. The mobile application is a client-rendered, phone-first Nuxt web app intended to run in a mobile browser. The website is an independent SSR Node build. The mobile app does not require Android Studio to develop or test.
 
 FastAPI isolates Steam identity verification from FACEIT public data. The browser receives an opaque HttpOnly cookie. Session hashes and CSRF tokens live in the database. FACEIT uses a server-side bearer key, 10-second timeouts, bounded retries and a 60-second process-local cache. Public lookup uses the verified SteamID, never a client-provided nickname as proof of ownership.
 
