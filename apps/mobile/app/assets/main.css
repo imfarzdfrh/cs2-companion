@@ -1446,9 +1446,22 @@ select { min-height: 48px; font-size: 16px; }
   font-size: 9px;
   line-height: 1.65;
 }
+.welcome::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: 15%;
+  left: 50%;
+  width: 100%;
+  height: 46%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, #527aa63d 0, #c18b3120 42%, transparent 74%);
+  pointer-events: none;
+}
 .operative {
+  z-index: 1;
   opacity: 1;
-  filter: brightness(1.22) contrast(1.12) saturate(1.12) drop-shadow(0 24px 35px #0005);
+  filter: brightness(1.42) contrast(1.12) saturate(1.18) drop-shadow(0 24px 35px #0005);
 }
 
 .offline-notice {
